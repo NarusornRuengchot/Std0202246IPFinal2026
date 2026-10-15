@@ -48,6 +48,10 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Search & Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'On Leave'>('All');
+
   // Form states for Add Employee
   const [name, setName] = useState('');
   const [position, setPosition] = useState('');
@@ -298,6 +302,21 @@ export default function DashboardScreen() {
       setClusteringLoading(false);
     }
   };
+
+  // Filtered employees list based on search and status
+  const filteredEmployees = employees.filter((emp) => {
+    const q = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      emp.name.toLowerCase().includes(q) ||
+      emp.position.toLowerCase().includes(q) ||
+      String(emp.salary).includes(q);
+
+    const matchesStatus =
+      statusFilter === 'All' || emp.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
 
   // Stats calculation
   const totalEmployees = employees.length;
@@ -725,14 +744,14 @@ export default function DashboardScreen() {
       </View>
 
       {/* ───────────────────────────────────────────────────────────────────── */}
-      {/* PHASE 1: Employee List (CRUD UI)                                      */}
+      {/* PHASE 1: Employee List (CRUD UI) with SEARCH & FILTER                 */}
       {/* ───────────────────────────────────────────────────────────────────── */}
       <View style={styles.sectionCard}>
         <View style={styles.listHeaderRow}>
           <View>
             <Text style={styles.sectionTitle}>Employee Directory</Text>
             <Text style={styles.sectionSubtitle}>
-              {employees.length} records in database
+              Showing {filteredEmployees.length} of {employees.length} records in database
             </Text>
           </View>
           <TouchableOpacity onPress={fetchEmployees} style={styles.refreshIconBtn}>
@@ -740,18 +759,71 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* SEARCH BAR & STATUS FILTER CHIPS */}
+        <View style={styles.searchSection}>
+          <View style={styles.searchBarWrap}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search by name, position, or salary..."
+              placeholderTextColor="#64748b"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                style={styles.clearSearchBtn}
+                onPress={() => setSearchQuery('')}
+              >
+                <Text style={styles.clearSearchText}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Status Filter Chips */}
+          <View style={styles.filterChipRow}>
+            {(['All', 'Active', 'On Leave'] as const).map((filter) => {
+              const isActive = statusFilter === filter;
+              return (
+                <TouchableOpacity
+                  key={filter}
+                  style={[
+                    styles.filterChip,
+                    isActive && styles.filterChipActive,
+                  ]}
+                  onPress={() => setStatusFilter(filter)}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      isActive && styles.filterChipTextActive,
+                    ]}
+                  >
+                    {filter}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
         {loading && employees.length === 0 ? (
           <View style={styles.loadingBox}>
             <ActivityIndicator color="#38bdf8" />
             <Text style={styles.loadingText}>Loading employees...</Text>
           </View>
-        ) : employees.length === 0 ? (
+        ) : filteredEmployees.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>No employees found.</Text>
-            <Text style={styles.emptySubtext}>Use the form above to add one.</Text>
+            <Text style={styles.emptyText}>No matching employees found.</Text>
+            <Text style={styles.emptySubtext}>
+              {searchQuery.length > 0
+                ? 'Try a different search term or clear filters.'
+                : 'Use the form above to add an employee.'}
+            </Text>
           </View>
         ) : (
-          employees.map((emp) => {
+          filteredEmployees.map((emp) => {
             const isActive = emp.status === 'Active';
             return (
               <View key={String(emp.id)} style={styles.empCard}>
@@ -1257,6 +1329,62 @@ const styles = StyleSheet.create({
     color: '#38bdf8',
     fontSize: 12,
     fontWeight: '600',
+  },
+  searchSection: {
+    marginBottom: 14,
+    gap: 8,
+  },
+  searchBarWrap: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  searchInput: {
+    backgroundColor: '#1e293b',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    paddingRight: 40,
+    color: '#f8fafc',
+    fontSize: 13,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  clearSearchBtn: {
+    position: 'absolute',
+    right: 12,
+    padding: 6,
+    cursor: 'pointer' as any,
+  },
+  clearSearchText: {
+    color: '#94a3b8',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  filterChipRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  filterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: '#1e293b',
+    borderWidth: 1,
+    borderColor: '#334155',
+    cursor: 'pointer' as any,
+  },
+  filterChipActive: {
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    borderColor: '#38bdf8',
+  },
+  filterChipText: {
+    fontSize: 11,
+    color: '#94a3b8',
+    fontWeight: '600',
+  },
+  filterChipTextActive: {
+    color: '#38bdf8',
+    fontWeight: '700',
   },
   empCard: {
     backgroundColor: '#1e293b',
