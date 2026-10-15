@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { getApiBaseUrl } from '../config/api';
+import { showAlert, showConfirm } from '../utils/alert';
 
 interface Employee {
   id: string | number;
@@ -48,9 +49,9 @@ export default function DashboardScreen() {
 
   const API_URL = getApiBaseUrl();
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Fetch Employees [GET /api/employees]
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true);
@@ -61,7 +62,7 @@ export default function DashboardScreen() {
       const data = await res.json();
       setEmployees(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      Alert.alert('Fetch Error', `Failed to load employees: ${err.message}`);
+      showAlert('Fetch Error', `Failed to load employees: ${err.message}`);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -77,21 +78,21 @@ export default function DashboardScreen() {
     fetchEmployees();
   };
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Add Employee [POST /api/employees] (with Client-Side Validation)
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleAddEmployee = async () => {
     // Client-side validation: prevent submission if fields are empty
     if (!name.trim()) {
-      Alert.alert('Validation Error', 'Please enter employee name.');
+      showAlert('Validation Error', 'Please enter employee name.');
       return;
     }
     if (!position.trim()) {
-      Alert.alert('Validation Error', 'Please enter employee position.');
+      showAlert('Validation Error', 'Please enter employee position.');
       return;
     }
     if (!salary.trim() || isNaN(Number(salary)) || Number(salary) <= 0) {
-      Alert.alert('Validation Error', 'Please enter a valid positive salary number.');
+      showAlert('Validation Error', 'Please enter a valid positive salary number.');
       return;
     }
 
@@ -110,7 +111,7 @@ export default function DashboardScreen() {
       const newEmp = await res.json();
 
       if (!res.ok) {
-        Alert.alert('Error', newEmp.message || 'Failed to add employee');
+        showAlert('Error', newEmp.message || 'Failed to add employee');
         return;
       }
 
@@ -118,18 +119,18 @@ export default function DashboardScreen() {
       setName('');
       setPosition('');
       setSalary('');
-      Alert.alert('Success', `Added employee "${newEmp.name}" successfully!`);
+      showAlert('Success', `Added employee "${newEmp.name}" successfully!`);
       fetchEmployees();
     } catch (err: any) {
-      Alert.alert('Network Error', `Could not add employee: ${err.message}`);
+      showAlert('Network Error', `Could not add employee: ${err.message}`);
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Toggle Status [PUT /api/employees/:id/status]
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleToggleStatus = async (emp: Employee) => {
     try {
       const res = await fetch(`${API_URL}/employees/${emp.id}/status`, {
@@ -143,16 +144,16 @@ export default function DashboardScreen() {
           prev.map((e) => (String(e.id) === String(emp.id) ? updated : e))
         );
       } else {
-        Alert.alert('Error', updated.message || 'Failed to update status');
+        showAlert('Error', updated.message || 'Failed to update status');
       }
     } catch (err: any) {
-      Alert.alert('Error', `Network failure: ${err.message}`);
+      showAlert('Error', `Network failure: ${err.message}`);
     }
   };
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Delete Employee [DELETE /api/employees/:id] with Alert Confirmation
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleDeleteEmployee = (emp: Employee) => {
     // Confirmation dialog ("Are you sure?") required by exam
     Alert.alert(
@@ -173,12 +174,12 @@ export default function DashboardScreen() {
                 setEmployees((prev) =>
                   prev.filter((e) => String(e.id) !== String(emp.id))
                 );
-                Alert.alert('Deleted', result.message || 'Employee removed.');
+                showAlert('Deleted', result.message || 'Employee removed.');
               } else {
-                Alert.alert('Error', result.message || 'Failed to delete');
+                showAlert('Error', result.message || 'Failed to delete');
               }
             } catch (err: any) {
-              Alert.alert('Error', `Delete request failed: ${err.message}`);
+              showAlert('Error', `Delete request failed: ${err.message}`);
             }
           },
         },
@@ -186,9 +187,9 @@ export default function DashboardScreen() {
     );
   };
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Phase 2: K-Means Salary Clustering [GET /api/employees/salary-clusters]
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleAnalyzeSalary = async () => {
     setClusteringLoading(true);
     setHasAnalyzed(true);
@@ -206,7 +207,7 @@ export default function DashboardScreen() {
         );
       }
     } catch (err: any) {
-      Alert.alert('Error', `Could not fetch clustering analytics: ${err.message}`);
+      showAlert('Error', `Could not fetch clustering analytics: ${err.message}`);
     } finally {
       setClusteringLoading(false);
     }
@@ -241,7 +242,7 @@ export default function DashboardScreen() {
         <View>
           <Text style={styles.appTitle}>HR Management System</Text>
           <Text style={styles.appSubtitle}>
-            Std: 6730202246 • นรุสรณ์ เรืองโชติ
+            Std: 6730202246 â€¢ à¸™à¸£à¸¸à¸ªà¸£à¸“à¹Œ à¹€à¸£à¸·à¸­à¸‡à¹‚à¸Šà¸•à¸´
           </Text>
         </View>
         <TouchableOpacity
@@ -273,14 +274,14 @@ export default function DashboardScreen() {
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>Avg Salary</Text>
           <Text style={[styles.statValue, { color: '#60a5fa', fontSize: 15 }]}>
-            ฿{avgSalary.toLocaleString()}
+            à¸¿{avgSalary.toLocaleString()}
           </Text>
         </View>
       </View>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* PHASE 2: K-Means Salary Clustering Section                           */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           <View>
@@ -307,7 +308,7 @@ export default function DashboardScreen() {
             </View>
           ) : (
             <Text style={styles.analyzeBtnText}>
-              ⚡ Analyze Salary Structure (K-Means)
+              âš¡ Analyze Salary Structure (K-Means)
             </Text>
           )}
         </TouchableOpacity>
@@ -351,11 +352,11 @@ export default function DashboardScreen() {
                     </View>
                     <Text style={styles.tierCentroidLabel}>Average (Centroid)</Text>
                     <Text style={[styles.tierCentroidValue, { color: tierColor }]}>
-                      ฿{cl.centroid.toLocaleString()}
+                      à¸¿{cl.centroid.toLocaleString()}
                     </Text>
                     <View style={styles.tierCountBadge}>
                       <Text style={styles.tierCountText}>
-                        👥 {cl.count} {cl.count === 1 ? 'Person' : 'People'}
+                        ðŸ‘¥ {cl.count} {cl.count === 1 ? 'Person' : 'People'}
                       </Text>
                     </View>
                   </View>
@@ -366,9 +367,9 @@ export default function DashboardScreen() {
         )}
       </View>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* PHASE 1: Add Employee Form                                           */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           <View>
@@ -389,7 +390,7 @@ export default function DashboardScreen() {
             <Text style={styles.inputLabel}>Full Name *</Text>
             <TextInput
               style={styles.textInput}
-              placeholder="e.g. สมศักดิ์ มีสุข"
+              placeholder="e.g. à¸ªà¸¡à¸¨à¸±à¸à¸”à¸´à¹Œ à¸¡à¸µà¸ªà¸¸à¸‚"
               placeholderTextColor="#64748b"
               value={name}
               onChangeText={setName}
@@ -433,9 +434,9 @@ export default function DashboardScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* PHASE 1: Employee List (CRUD UI)                                      */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <View style={styles.sectionCard}>
         <View style={styles.listHeaderRow}>
           <View>
@@ -445,7 +446,7 @@ export default function DashboardScreen() {
             </Text>
           </View>
           <TouchableOpacity onPress={fetchEmployees} style={styles.refreshIconBtn}>
-            <Text style={styles.refreshIconText}>↻ Refresh</Text>
+            <Text style={styles.refreshIconText}>â†» Refresh</Text>
           </TouchableOpacity>
         </View>
 
@@ -479,7 +480,7 @@ export default function DashboardScreen() {
                           isActive ? styles.statusTextActive : styles.statusTextLeave,
                         ]}
                       >
-                        ● {emp.status}
+                        â— {emp.status}
                       </Text>
                     </View>
                   </View>
@@ -488,7 +489,7 @@ export default function DashboardScreen() {
                   <Text style={styles.empSalary}>
                     Salary:{' '}
                     <Text style={styles.salaryHighlight}>
-                      ฿{Number(emp.salary).toLocaleString()}
+                      à¸¿{Number(emp.salary).toLocaleString()}
                     </Text>
                   </Text>
                 </View>

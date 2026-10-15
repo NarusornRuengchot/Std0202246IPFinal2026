@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,13 +6,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { getApiBaseUrl, setApiBaseUrl } from '../config/api';
+import { showAlert } from '../utils/alert';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('admin');
@@ -24,15 +24,17 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     // Client-side validation
     if (!username.trim() || !password.trim()) {
-      Alert.alert('Validation Error', 'Please enter both username and password.');
+      showAlert('Validation Error', 'Please enter both username and password.');
       return;
     }
 
     setLoading(true);
-    setApiBaseUrl(apiUrl.trim());
+    const targetUrl = apiUrl.trim();
+    setApiBaseUrl(targetUrl);
 
     try {
-      const response = await fetch(`${apiUrl.trim()}/login`, {
+      console.log('Sending login request to:', `${targetUrl}/login`);
+      const response = await fetch(`${targetUrl}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,15 +52,16 @@ export default function LoginScreen() {
         router.replace('/dashboard');
       } else {
         // Failed: display alert
-        Alert.alert(
+        showAlert(
           'Login Failed',
           data.message || 'Invalid username or password. Please try again.'
         );
       }
     } catch (err: any) {
-      Alert.alert(
+      console.error('Login error:', err);
+      showAlert(
         'Connection Error',
-        `Cannot connect to backend server at ${apiUrl}.\nPlease verify the server is running.\n\nError: ${err.message}`
+        `Cannot connect to backend server at ${targetUrl}.\nPlease verify the server is running on the server.\n\nError: ${err.message}`
       );
     } finally {
       setLoading(false);
@@ -161,15 +164,15 @@ export default function LoginScreen() {
               <View style={styles.quickUrls}>
                 <TouchableOpacity
                   style={styles.quickUrlBtn}
-                  onPress={() => setApiUrl('http://localhost:3024/api')}
-                >
-                  <Text style={styles.quickUrlText}>Local (3024)</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.quickUrlBtn}
                   onPress={() => setApiUrl('http://119.59.102.161:3024/api')}
                 >
                   <Text style={styles.quickUrlText}>KU Server (3024)</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.quickUrlBtn}
+                  onPress={() => setApiUrl('http://localhost:3024/api')}
+                >
+                  <Text style={styles.quickUrlText}>Localhost (3024)</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -232,11 +235,6 @@ const styles = StyleSheet.create({
     padding: 24,
     borderWidth: 1,
     borderColor: '#1e293b',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 8,
   },
   cardTitle: {
     fontSize: 20,
@@ -291,11 +289,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#2563eb',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 4,
+    cursor: 'pointer' as any,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -308,6 +302,7 @@ const styles = StyleSheet.create({
   toggleConfigBtn: {
     marginTop: 18,
     alignItems: 'center',
+    cursor: 'pointer' as any,
   },
   toggleConfigText: {
     color: '#64748b',
@@ -350,6 +345,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#475569',
+    cursor: 'pointer' as any,
   },
   quickUrlText: {
     color: '#38bdf8',

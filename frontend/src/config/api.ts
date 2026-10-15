@@ -1,12 +1,5 @@
-import { Platform } from 'react-native';
-
-// Default API URL:
-// - On Web / Local emulator: http://localhost:3024/api
-// - On Physical device (Expo Go): replace with your local WiFi IP or the university server IP (http://119.59.102.161:3024/api)
-export const DEFAULT_API_BASE_URL = 
-  Platform.OS === 'web' 
-    ? 'http://localhost:3024/api' 
-    : 'http://119.59.102.161:3024/api';
+﻿// Default API URL: points to the university VPS server where backend is deployed
+export const DEFAULT_API_BASE_URL = 'http://119.59.102.161:3024/api';
 
 let currentApiUrl = DEFAULT_API_BASE_URL;
 
