@@ -3,12 +3,11 @@
 -- Student: Narusorn Ruengchot (นรุสรณ์ เรืองโชติ)
 -- Student ID: 6730202246
 -- Database: ip_std6730202246
--- Table Name: NarRue_6730202246
+-- Table Name: NarRue_Employees
 -- ============================================================================
 
-CREATE TABLE IF NOT EXISTS `NarRue_6730202246` (
+CREATE TABLE IF NOT EXISTS `NarRue_Employees` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `NarRue_6730202246` VARCHAR(100) DEFAULT '6730202246',
   `name` VARCHAR(100) NOT NULL,
   `position` VARCHAR(100) NOT NULL,
   `status` ENUM('Active', 'On Leave') NOT NULL DEFAULT 'Active',
@@ -16,11 +15,12 @@ CREATE TABLE IF NOT EXISTS `NarRue_6730202246` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- View for compatibility if requested as 'employees'
-CREATE OR REPLACE VIEW `employees` AS SELECT * FROM `NarRue_6730202246`;
+-- Compatibility Views
+CREATE OR REPLACE VIEW `employees` AS SELECT * FROM `NarRue_Employees`;
+CREATE OR REPLACE VIEW `NarRue_6730202246` AS SELECT * FROM `NarRue_Employees`;
 
--- Insert Mock Data (10 Employees across salary ranges for K-Means Clustering)
-INSERT INTO `NarRue_6730202246` (`name`, `position`, `status`, `salary`) VALUES
+-- Seed Data (10 Employees)
+INSERT INTO `NarRue_Employees` (`name`, `position`, `status`, `salary`) VALUES
 ('สมชาย วงศ์สกุล', 'CEO', 'Active', 120000.00),
 ('วิภาวดี ศรีสมร', 'Senior Developer', 'Active', 75000.00),
 ('ธนพล กิจเจริญ', 'Developer', 'Active', 55000.00),
