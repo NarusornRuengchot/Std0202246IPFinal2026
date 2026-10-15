@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -38,6 +38,11 @@ interface ClusterResult {
   members?: ClusterMember[];
 }
 
+// Currency formatter: Thai Baht
+const formatTHB = (amount: number | string) => {
+  return `\u0E3F${Number(amount || 0).toLocaleString()}`;
+};
+
 export default function DashboardScreen() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,13 +66,13 @@ export default function DashboardScreen() {
   const [clusters, setClusters] = useState<ClusterResult[]>([]);
   const [clusteringLoading, setClusteringLoading] = useState(false);
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
-  const [clusterViewMode, setClusterViewMode] = useState<'cards' | 'table'>('table');
+  const [clusterViewMode, setClusterViewMode] = useState<'table' | 'cards'>('table');
 
   const API_URL = getApiBaseUrl();
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   // Fetch Employees [GET /api/employees]
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true);
@@ -94,9 +99,9 @@ export default function DashboardScreen() {
     fetchEmployees();
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   // Add Employee [POST /api/employees]
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   const handleAddEmployee = async () => {
     if (!name.trim()) {
       showAlert('Validation Error', 'Please enter employee name.');
@@ -142,9 +147,9 @@ export default function DashboardScreen() {
     }
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   // Edit Employee [PUT /api/employees/:id]
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   const openEditModal = (emp: Employee) => {
     setEditingEmployee(emp);
     setEditName(emp.name);
@@ -187,7 +192,10 @@ export default function DashboardScreen() {
       try {
         updated = JSON.parse(textResponse);
       } catch (e) {
-        showAlert('Server Route Error', 'Backend needs to be updated. Please upload the new server.js to FileZilla and restart node server.js on the server.');
+        showAlert(
+          'Server Notice',
+          'Server route was not updated. Please upload server.js to FileZilla and restart node server.js.'
+        );
         return;
       }
 
@@ -208,9 +216,9 @@ export default function DashboardScreen() {
     }
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   // Toggle Status [PUT /api/employees/:id/status]
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   const handleToggleStatus = async (emp: Employee) => {
     try {
       const res = await fetch(`${API_URL}/employees/${emp.id}/status`, {
@@ -230,21 +238,19 @@ export default function DashboardScreen() {
     }
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Delete Employee [DELETE /api/employees/:id] with Confirmation Dialog
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
+  // Delete Employee [DELETE /api/employees/:id]
+  // ───────────────────────────────────────────────────────────────────────────
   const handleDeleteEmployee = (emp: Employee) => {
     showConfirm(
       'Confirm Delete',
       `Are you sure you want to delete "${emp.name}"? This action cannot be undone.`,
       async () => {
         try {
-          console.log(`Sending delete request for ID: ${emp.id}`);
           let res = await fetch(`${API_URL}/employees/${emp.id}`, {
             method: 'DELETE',
           });
 
-          // Fallback if DELETE method is blocked by reverse proxy
           if (!res.ok && res.status === 405) {
             res = await fetch(`${API_URL}/employees/${emp.id}/delete`, {
               method: 'POST',
@@ -267,9 +273,9 @@ export default function DashboardScreen() {
     );
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   // Phase 2: K-Means Salary Clustering [GET /api/employees/salary-clusters]
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   const handleAnalyzeSalary = async () => {
     setClusteringLoading(true);
     setHasAnalyzed(true);
@@ -322,7 +328,7 @@ export default function DashboardScreen() {
         <View>
           <Text style={styles.appTitle}>HR Management System</Text>
           <Text style={styles.appSubtitle}>
-            Std: 6730202246 â€¢ à¸™à¸£à¸¸à¸ªà¸£à¸“à¹Œ à¹€à¸£à¸·à¸­à¸‡à¹‚à¸Šà¸•à¸´
+            Student ID: 6730202246 | Narusorn Ruengchot
           </Text>
         </View>
         <TouchableOpacity
@@ -353,15 +359,15 @@ export default function DashboardScreen() {
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>Avg Salary</Text>
-          <Text style={[styles.statValue, { color: '#60a5fa', fontSize: 15 }]}>
-            à¸¿{avgSalary.toLocaleString()}
+          <Text style={[styles.statValue, { color: '#60a5fa', fontSize: 16 }]}>
+            {formatTHB(avgSalary)}
           </Text>
         </View>
       </View>
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       {/* PHASE 2: K-Means Salary Clustering Section                           */}
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           <View>
@@ -370,7 +376,7 @@ export default function DashboardScreen() {
             </View>
             <Text style={styles.sectionTitle}>Automated Salary Clustering (K-Means)</Text>
             <Text style={styles.sectionSubtitle}>
-              1D K-Means Algorithm (k=3) groups compensation into 3 tiers
+              1D K-Means Algorithm (k=3) groups compensation into 3 salary tiers
             </Text>
           </View>
         </View>
@@ -388,7 +394,7 @@ export default function DashboardScreen() {
             </View>
           ) : (
             <Text style={styles.analyzeBtnText}>
-              âš¡ Analyze Salary Structure (K-Means)
+              [ Run 1D K-Means Clustering Analytics ]
             </Text>
           )}
         </TouchableOpacity>
@@ -398,14 +404,14 @@ export default function DashboardScreen() {
           <View style={styles.loadingBox}>
             <ActivityIndicator color="#38bdf8" size="large" />
             <Text style={styles.loadingText}>
-              Processing 1D K-Means clustering algorithm...
+              Calculating 1D K-Means clustering algorithm...
             </Text>
           </View>
         )}
 
         {!clusteringLoading && hasAnalyzed && clusters.length > 0 && (
           <View style={styles.clustersContainer}>
-            {/* View Switcher: Cards vs Table */}
+            {/* View Switcher: Table vs Cards */}
             <View style={styles.viewToggleRow}>
               <Text style={styles.clustersHeader}>Clustering Results (3 Tiers):</Text>
               <View style={styles.toggleButtons}>
@@ -422,7 +428,7 @@ export default function DashboardScreen() {
                       clusterViewMode === 'table' && styles.toggleBtnTextActive,
                     ]}
                   >
-                    ðŸ“Š Table View
+                    Table View
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -438,7 +444,7 @@ export default function DashboardScreen() {
                       clusterViewMode === 'cards' && styles.toggleBtnTextActive,
                     ]}
                   >
-                    ðŸ—‚ Cards View
+                    Cards View
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -472,11 +478,11 @@ export default function DashboardScreen() {
                       </View>
                       <Text style={styles.tierCentroidLabel}>Average Centroid</Text>
                       <Text style={[styles.tierCentroidValue, { color: tierColor }]}>
-                        à¸¿{cl.centroid.toLocaleString()}
+                        {formatTHB(cl.centroid)}
                       </Text>
                       <View style={styles.tierCountBadge}>
                         <Text style={styles.tierCountText}>
-                          ðŸ‘¥ {cl.count} {cl.count === 1 ? 'Person' : 'People'}
+                          {cl.count} {cl.count === 1 ? 'Employee' : 'Employees'}
                         </Text>
                       </View>
                     </View>
@@ -489,13 +495,21 @@ export default function DashboardScreen() {
             {clusterViewMode === 'table' && (
               <View style={styles.tableWrapper}>
                 {/* 1. Summary Table */}
-                <Text style={styles.subTableTitle}>1. Summary Table (Centroids & Staff Distribution)</Text>
+                <Text style={styles.subTableTitle}>
+                  1. Tier Summary Table (Centroids & Distribution)
+                </Text>
                 <View style={styles.table}>
                   <View style={styles.tableHeaderRow}>
                     <Text style={[styles.th, { flex: 1.2 }]}>Tier Group</Text>
-                    <Text style={[styles.th, { flex: 1.5, textAlign: 'right' }]}>Centroid (Avg)</Text>
-                    <Text style={[styles.th, { flex: 1, textAlign: 'center' }]}>Count</Text>
-                    <Text style={[styles.th, { flex: 1, textAlign: 'right' }]}>Share %</Text>
+                    <Text style={[styles.th, { flex: 1.6, textAlign: 'right' }]}>
+                      Centroid (Avg Salary)
+                    </Text>
+                    <Text style={[styles.th, { flex: 1, textAlign: 'center' }]}>
+                      Headcount
+                    </Text>
+                    <Text style={[styles.th, { flex: 1, textAlign: 'right' }]}>
+                      Share %
+                    </Text>
                   </View>
                   {clusters.map((cl, idx) => {
                     const tierColor =
@@ -506,17 +520,54 @@ export default function DashboardScreen() {
                         : 0;
                     return (
                       <View key={idx} style={styles.tableRow}>
-                        <View style={[styles.td, { flex: 1.2, flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
-                          <View style={[styles.colorDot, { backgroundColor: tierColor }]} />
-                          <Text style={[styles.tdTextBold, { color: tierColor }]}>{cl.group}</Text>
+                        <View
+                          style={[
+                            styles.td,
+                            {
+                              flex: 1.2,
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: 6,
+                            },
+                          ]}
+                        >
+                          <View
+                            style={[styles.colorDot, { backgroundColor: tierColor }]}
+                          />
+                          <Text style={[styles.tdTextBold, { color: tierColor }]}>
+                            {cl.group}
+                          </Text>
                         </View>
-                        <Text style={[styles.td, styles.tdText, { flex: 1.5, textAlign: 'right', color: '#f8fafc', fontWeight: '700' }]}>
-                          à¸¿{cl.centroid.toLocaleString()}
+                        <Text
+                          style={[
+                            styles.td,
+                            styles.tdText,
+                            {
+                              flex: 1.6,
+                              textAlign: 'right',
+                              color: '#f8fafc',
+                              fontWeight: '700',
+                            },
+                          ]}
+                        >
+                          {formatTHB(cl.centroid)}
                         </Text>
-                        <Text style={[styles.td, styles.tdText, { flex: 1, textAlign: 'center' }]}>
-                          {cl.count} à¸„à¸™
+                        <Text
+                          style={[
+                            styles.td,
+                            styles.tdText,
+                            { flex: 1, textAlign: 'center' },
+                          ]}
+                        >
+                          {cl.count} Persons
                         </Text>
-                        <Text style={[styles.td, styles.tdText, { flex: 1, textAlign: 'right', color: '#94a3b8' }]}>
+                        <Text
+                          style={[
+                            styles.td,
+                            styles.tdText,
+                            { flex: 1, textAlign: 'right', color: '#94a3b8' },
+                          ]}
+                        >
                           {share}%
                         </Text>
                       </View>
@@ -525,14 +576,20 @@ export default function DashboardScreen() {
                 </View>
 
                 {/* 2. Detailed Member List by Tier Table */}
-                <Text style={[styles.subTableTitle, { marginTop: 16 }]}>2. Employee Tier Classification Details</Text>
+                <Text style={[styles.subTableTitle, { marginTop: 16 }]}>
+                  2. Detailed Employee Tier Classification
+                </Text>
                 <View style={styles.table}>
                   <View style={styles.tableHeaderRow}>
                     <Text style={[styles.th, { flex: 0.6 }]}>#</Text>
-                    <Text style={[styles.th, { flex: 1.6 }]}>Name</Text>
+                    <Text style={[styles.th, { flex: 1.6 }]}>Employee Name</Text>
                     <Text style={[styles.th, { flex: 1.4 }]}>Position</Text>
-                    <Text style={[styles.th, { flex: 1.3, textAlign: 'right' }]}>Salary</Text>
-                    <Text style={[styles.th, { flex: 1.1, textAlign: 'center' }]}>Tier</Text>
+                    <Text style={[styles.th, { flex: 1.4, textAlign: 'right' }]}>
+                      Salary
+                    </Text>
+                    <Text style={[styles.th, { flex: 1.1, textAlign: 'center' }]}>
+                      Assigned Tier
+                    </Text>
                   </View>
 
                   {clusters.flatMap((cl, cIdx) => {
@@ -540,21 +597,54 @@ export default function DashboardScreen() {
                       cIdx === 0 ? '#38bdf8' : cIdx === 1 ? '#a855f7' : '#f59e0b';
                     return (cl.members || []).map((m, mIdx) => (
                       <View key={`${cIdx}-${mIdx}`} style={styles.tableRow}>
-                        <Text style={[styles.td, styles.tdText, { flex: 0.6, color: '#64748b' }]}>
+                        <Text
+                          style={[
+                            styles.td,
+                            styles.tdText,
+                            { flex: 0.6, color: '#64748b' },
+                          ]}
+                        >
                           {mIdx + 1}
                         </Text>
                         <Text style={[styles.td, styles.tdTextBold, { flex: 1.6 }]}>
                           {m.name}
                         </Text>
-                        <Text style={[styles.td, styles.tdText, { flex: 1.4, color: '#94a3b8' }]}>
+                        <Text
+                          style={[
+                            styles.td,
+                            styles.tdText,
+                            { flex: 1.4, color: '#94a3b8' },
+                          ]}
+                        >
                           {m.position}
                         </Text>
-                        <Text style={[styles.td, styles.tdText, { flex: 1.3, textAlign: 'right', color: '#38bdf8', fontWeight: '700' }]}>
-                          à¸¿{Number(m.salary).toLocaleString()}
+                        <Text
+                          style={[
+                            styles.td,
+                            styles.tdText,
+                            {
+                              flex: 1.4,
+                              textAlign: 'right',
+                              color: '#38bdf8',
+                              fontWeight: '700',
+                            },
+                          ]}
+                        >
+                          {formatTHB(m.salary)}
                         </Text>
                         <View style={[styles.td, { flex: 1.1, alignItems: 'center' }]}>
-                          <View style={[styles.tierTag, { backgroundColor: `${tierColor}20`, borderColor: tierColor }]}>
-                            <Text style={[styles.tierTagText, { color: tierColor }]}>{cl.group}</Text>
+                          <View
+                            style={[
+                              styles.tierTag,
+                              {
+                                backgroundColor: `${tierColor}20`,
+                                borderColor: tierColor,
+                              },
+                            ]}
+                          >
+                            <Text style={[styles.tierTagText, { color: tierColor }]}>
+                              {cl.group}
+                            </Text>
                           </View>
                         </View>
                       </View>
@@ -567,9 +657,9 @@ export default function DashboardScreen() {
         )}
       </View>
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       {/* PHASE 1: Add Employee Form                                           */}
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           <View>
@@ -590,7 +680,7 @@ export default function DashboardScreen() {
             <Text style={styles.inputLabel}>Full Name *</Text>
             <TextInput
               style={styles.textInput}
-              placeholder="e.g. à¸ªà¸¡à¸¨à¸±à¸à¸”à¸´à¹Œ à¸¡à¸µà¸ªà¸¸à¸‚"
+              placeholder="e.g. John Smith"
               placeholderTextColor="#64748b"
               value={name}
               onChangeText={setName}
@@ -634,9 +724,9 @@ export default function DashboardScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       {/* PHASE 1: Employee List (CRUD UI)                                      */}
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       <View style={styles.sectionCard}>
         <View style={styles.listHeaderRow}>
           <View>
@@ -646,7 +736,7 @@ export default function DashboardScreen() {
             </Text>
           </View>
           <TouchableOpacity onPress={fetchEmployees} style={styles.refreshIconBtn}>
-            <Text style={styles.refreshIconText}>â†» Refresh</Text>
+            <Text style={styles.refreshIconText}>[ Refresh ]</Text>
           </TouchableOpacity>
         </View>
 
@@ -680,7 +770,7 @@ export default function DashboardScreen() {
                           isActive ? styles.statusTextActive : styles.statusTextLeave,
                         ]}
                       >
-                        â— {emp.status}
+                        {emp.status}
                       </Text>
                     </View>
                   </View>
@@ -689,7 +779,7 @@ export default function DashboardScreen() {
                   <Text style={styles.empSalary}>
                     Salary:{' '}
                     <Text style={styles.salaryHighlight}>
-                      à¸¿{Number(emp.salary).toLocaleString()}
+                      {formatTHB(emp.salary)}
                     </Text>
                   </Text>
                 </View>
@@ -713,7 +803,7 @@ export default function DashboardScreen() {
                     onPress={() => openEditModal(emp)}
                   >
                     <Text style={[styles.actionBtnText, styles.editBtnText]}>
-                      âœï¸ Edit
+                      Edit
                     </Text>
                   </TouchableOpacity>
 
@@ -722,7 +812,7 @@ export default function DashboardScreen() {
                     onPress={() => handleDeleteEmployee(emp)}
                   >
                     <Text style={[styles.actionBtnText, styles.deleteBtnText]}>
-                      ðŸ—‘ Delete
+                      Delete
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -732,9 +822,9 @@ export default function DashboardScreen() {
         )}
       </View>
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       {/* EDIT EMPLOYEE MODAL                                                   */}
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       <Modal
         visible={editingEmployee !== null}
         transparent={true}
@@ -862,11 +952,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '800',
     color: '#f8fafc',
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, sans-serif' : undefined,
   },
   appSubtitle: {
     fontSize: 12,
     color: '#94a3b8',
     marginTop: 2,
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, sans-serif' : undefined,
   },
   signOutBtn: {
     backgroundColor: '#1e293b',
@@ -944,7 +1036,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   analyzeBtn: {
-    backgroundColor: '#8b5cf6',
+    backgroundColor: '#7c3aed',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -992,16 +1084,16 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   toggleBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 6,
     cursor: 'pointer' as any,
   },
   toggleBtnActive: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#2563eb',
   },
   toggleBtnText: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#94a3b8',
     fontWeight: '600',
   },
@@ -1033,7 +1125,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   tierCentroidValue: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '800',
     marginVertical: 4,
   },
@@ -1041,11 +1133,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
     backgroundColor: 'rgba(0,0,0,0.3)',
     borderRadius: 8,
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     paddingVertical: 2,
   },
   tierCountText: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#cbd5e1',
     fontWeight: '600',
   },
@@ -1069,7 +1161,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#1e293b',
     paddingVertical: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#334155',
   },
@@ -1081,7 +1173,7 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: 'row',
     paddingVertical: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(30, 41, 59, 0.6)',
     alignItems: 'center',
@@ -1106,11 +1198,11 @@ const styles = StyleSheet.create({
   tierTag: {
     borderWidth: 1,
     borderRadius: 6,
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     paddingVertical: 2,
   },
   tierTagText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
   formGrid: {
