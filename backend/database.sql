@@ -1,4 +1,4 @@
--- ============================================================================
+﻿-- ============================================================================
 -- Database Script for IP Final Exam 2026
 -- Student: Narusorn Ruengchot (นรุสรณ์ เรืองโชติ)
 -- Student ID: 6730202246
@@ -8,12 +8,16 @@
 
 CREATE TABLE IF NOT EXISTS `NarRue_6730202246` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `NarRue_6730202246` VARCHAR(100) DEFAULT '6730202246',
   `name` VARCHAR(100) NOT NULL,
   `position` VARCHAR(100) NOT NULL,
   `status` ENUM('Active', 'On Leave') NOT NULL DEFAULT 'Active',
   `salary` DECIMAL(12, 2) NOT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- View for compatibility if requested as 'employees'
+CREATE OR REPLACE VIEW `employees` AS SELECT * FROM `NarRue_6730202246`;
 
 -- Insert Mock Data (10 Employees across salary ranges for K-Means Clustering)
 INSERT INTO `NarRue_6730202246` (`name`, `position`, `status`, `salary`) VALUES
