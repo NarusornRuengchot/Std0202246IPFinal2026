@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -65,9 +65,9 @@ export default function DashboardScreen() {
 
   const API_URL = getApiBaseUrl();
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Fetch Employees [GET /api/employees]
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true);
@@ -94,9 +94,9 @@ export default function DashboardScreen() {
     fetchEmployees();
   };
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Add Employee [POST /api/employees]
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleAddEmployee = async () => {
     if (!name.trim()) {
       showAlert('Validation Error', 'Please enter employee name.');
@@ -142,9 +142,9 @@ export default function DashboardScreen() {
     }
   };
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Edit Employee [PUT /api/employees/:id]
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const openEditModal = (emp: Employee) => {
     setEditingEmployee(emp);
     setEditName(emp.name);
@@ -182,7 +182,14 @@ export default function DashboardScreen() {
         }),
       });
 
-      const updated = await res.json();
+      let updated;
+      const textResponse = await res.text();
+      try {
+        updated = JSON.parse(textResponse);
+      } catch (e) {
+        showAlert('Server Route Error', 'Backend needs to be updated. Please upload the new server.js to FileZilla and restart node server.js on the server.');
+        return;
+      }
 
       if (!res.ok) {
         showAlert('Update Error', updated.message || 'Failed to update employee');
@@ -201,9 +208,9 @@ export default function DashboardScreen() {
     }
   };
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Toggle Status [PUT /api/employees/:id/status]
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleToggleStatus = async (emp: Employee) => {
     try {
       const res = await fetch(`${API_URL}/employees/${emp.id}/status`, {
@@ -223,9 +230,9 @@ export default function DashboardScreen() {
     }
   };
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Delete Employee [DELETE /api/employees/:id] with Confirmation Dialog
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleDeleteEmployee = (emp: Employee) => {
     showConfirm(
       'Confirm Delete',
@@ -260,9 +267,9 @@ export default function DashboardScreen() {
     );
   };
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Phase 2: K-Means Salary Clustering [GET /api/employees/salary-clusters]
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleAnalyzeSalary = async () => {
     setClusteringLoading(true);
     setHasAnalyzed(true);
@@ -315,7 +322,7 @@ export default function DashboardScreen() {
         <View>
           <Text style={styles.appTitle}>HR Management System</Text>
           <Text style={styles.appSubtitle}>
-            Std: 6730202246 • นรุสรณ์ เรืองโชติ
+            Std: 6730202246 â€¢ à¸™à¸£à¸¸à¸ªà¸£à¸“à¹Œ à¹€à¸£à¸·à¸­à¸‡à¹‚à¸Šà¸•à¸´
           </Text>
         </View>
         <TouchableOpacity
@@ -347,14 +354,14 @@ export default function DashboardScreen() {
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>Avg Salary</Text>
           <Text style={[styles.statValue, { color: '#60a5fa', fontSize: 15 }]}>
-            ฿{avgSalary.toLocaleString()}
+            à¸¿{avgSalary.toLocaleString()}
           </Text>
         </View>
       </View>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* PHASE 2: K-Means Salary Clustering Section                           */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           <View>
@@ -381,7 +388,7 @@ export default function DashboardScreen() {
             </View>
           ) : (
             <Text style={styles.analyzeBtnText}>
-              ⚡ Analyze Salary Structure (K-Means)
+              âš¡ Analyze Salary Structure (K-Means)
             </Text>
           )}
         </TouchableOpacity>
@@ -415,7 +422,7 @@ export default function DashboardScreen() {
                       clusterViewMode === 'table' && styles.toggleBtnTextActive,
                     ]}
                   >
-                    📊 Table View
+                    ðŸ“Š Table View
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -431,7 +438,7 @@ export default function DashboardScreen() {
                       clusterViewMode === 'cards' && styles.toggleBtnTextActive,
                     ]}
                   >
-                    🗂 Cards View
+                    ðŸ—‚ Cards View
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -465,11 +472,11 @@ export default function DashboardScreen() {
                       </View>
                       <Text style={styles.tierCentroidLabel}>Average Centroid</Text>
                       <Text style={[styles.tierCentroidValue, { color: tierColor }]}>
-                        ฿{cl.centroid.toLocaleString()}
+                        à¸¿{cl.centroid.toLocaleString()}
                       </Text>
                       <View style={styles.tierCountBadge}>
                         <Text style={styles.tierCountText}>
-                          👥 {cl.count} {cl.count === 1 ? 'Person' : 'People'}
+                          ðŸ‘¥ {cl.count} {cl.count === 1 ? 'Person' : 'People'}
                         </Text>
                       </View>
                     </View>
@@ -504,10 +511,10 @@ export default function DashboardScreen() {
                           <Text style={[styles.tdTextBold, { color: tierColor }]}>{cl.group}</Text>
                         </View>
                         <Text style={[styles.td, styles.tdText, { flex: 1.5, textAlign: 'right', color: '#f8fafc', fontWeight: '700' }]}>
-                          ฿{cl.centroid.toLocaleString()}
+                          à¸¿{cl.centroid.toLocaleString()}
                         </Text>
                         <Text style={[styles.td, styles.tdText, { flex: 1, textAlign: 'center' }]}>
-                          {cl.count} คน
+                          {cl.count} à¸„à¸™
                         </Text>
                         <Text style={[styles.td, styles.tdText, { flex: 1, textAlign: 'right', color: '#94a3b8' }]}>
                           {share}%
@@ -543,7 +550,7 @@ export default function DashboardScreen() {
                           {m.position}
                         </Text>
                         <Text style={[styles.td, styles.tdText, { flex: 1.3, textAlign: 'right', color: '#38bdf8', fontWeight: '700' }]}>
-                          ฿{Number(m.salary).toLocaleString()}
+                          à¸¿{Number(m.salary).toLocaleString()}
                         </Text>
                         <View style={[styles.td, { flex: 1.1, alignItems: 'center' }]}>
                           <View style={[styles.tierTag, { backgroundColor: `${tierColor}20`, borderColor: tierColor }]}>
@@ -560,9 +567,9 @@ export default function DashboardScreen() {
         )}
       </View>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* PHASE 1: Add Employee Form                                           */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           <View>
@@ -583,7 +590,7 @@ export default function DashboardScreen() {
             <Text style={styles.inputLabel}>Full Name *</Text>
             <TextInput
               style={styles.textInput}
-              placeholder="e.g. สมศักดิ์ มีสุข"
+              placeholder="e.g. à¸ªà¸¡à¸¨à¸±à¸à¸”à¸´à¹Œ à¸¡à¸µà¸ªà¸¸à¸‚"
               placeholderTextColor="#64748b"
               value={name}
               onChangeText={setName}
@@ -627,9 +634,9 @@ export default function DashboardScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* PHASE 1: Employee List (CRUD UI)                                      */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <View style={styles.sectionCard}>
         <View style={styles.listHeaderRow}>
           <View>
@@ -639,7 +646,7 @@ export default function DashboardScreen() {
             </Text>
           </View>
           <TouchableOpacity onPress={fetchEmployees} style={styles.refreshIconBtn}>
-            <Text style={styles.refreshIconText}>↻ Refresh</Text>
+            <Text style={styles.refreshIconText}>â†» Refresh</Text>
           </TouchableOpacity>
         </View>
 
@@ -673,7 +680,7 @@ export default function DashboardScreen() {
                           isActive ? styles.statusTextActive : styles.statusTextLeave,
                         ]}
                       >
-                        ● {emp.status}
+                        â— {emp.status}
                       </Text>
                     </View>
                   </View>
@@ -682,7 +689,7 @@ export default function DashboardScreen() {
                   <Text style={styles.empSalary}>
                     Salary:{' '}
                     <Text style={styles.salaryHighlight}>
-                      ฿{Number(emp.salary).toLocaleString()}
+                      à¸¿{Number(emp.salary).toLocaleString()}
                     </Text>
                   </Text>
                 </View>
@@ -706,7 +713,7 @@ export default function DashboardScreen() {
                     onPress={() => openEditModal(emp)}
                   >
                     <Text style={[styles.actionBtnText, styles.editBtnText]}>
-                      ✏️ Edit
+                      âœï¸ Edit
                     </Text>
                   </TouchableOpacity>
 
@@ -715,7 +722,7 @@ export default function DashboardScreen() {
                     onPress={() => handleDeleteEmployee(emp)}
                   >
                     <Text style={[styles.actionBtnText, styles.deleteBtnText]}>
-                      🗑 Delete
+                      ðŸ—‘ Delete
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -725,9 +732,9 @@ export default function DashboardScreen() {
         )}
       </View>
 
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {/* EDIT EMPLOYEE MODAL                                                   */}
-      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <Modal
         visible={editingEmployee !== null}
         transparent={true}

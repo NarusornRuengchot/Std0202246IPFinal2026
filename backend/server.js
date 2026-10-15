@@ -19,16 +19,16 @@ const TABLE_NAME = process.env.TABLE_NAME || 'NarRue_Employees';
 // Initial Mock Data (10 Employees across salary ranges)
 // ─────────────────────────────────────────────────────────────────────────────
 const INITIAL_EMPLOYEES = [
-  { id: 1,  name: 'สมชาย วงศ์สกุล',     position: 'CEO',              status: 'Active',   salary: 120000 },
-  { id: 2,  name: 'วิภาวดี ศรีสมร',       position: 'Senior Developer', status: 'Active',   salary: 75000  },
-  { id: 3,  name: 'ธนพล กิจเจริญ',       position: 'Developer',        status: 'Active',   salary: 55000  },
-  { id: 4,  name: 'สุภาพร ศรีสุข',        position: 'Designer',         status: 'Active',   salary: 45000  },
-  { id: 5,  name: 'อรุณ แสงเดือน',       position: 'HR Manager',       status: 'On Leave', salary: 48000  },
-  { id: 6,  name: 'พิมพ์ชนก สว่างจิต',    position: 'Accountant',       status: 'Active',   salary: 38000  },
-  { id: 7,  name: 'กมลทิพย์ ร่มเย็น',     position: 'Marketing',        status: 'Active',   salary: 32000  },
-  { id: 8,  name: 'ปัณณ์ ภูมิพัฒน์',       position: 'CTO',              status: 'Active',   salary: 95000  },
-  { id: 9,  name: 'นภัส คงทน',           position: 'Junior Developer', status: 'Active',   salary: 22000  },
-  { id: 10, name: 'วิชัย ใจดี',            position: 'Intern',           status: 'Active',   salary: 15000  },
+  { id: 1, name: 'สมชาย วงศ์สกุล', position: 'CEO', status: 'Active', salary: 120000 },
+  { id: 2, name: 'วิภาวดี ศรีสมร', position: 'Senior Developer', status: 'Active', salary: 75000 },
+  { id: 3, name: 'ธนพล กิจเจริญ', position: 'Developer', status: 'Active', salary: 55000 },
+  { id: 4, name: 'สุภาพร ศรีสุข', position: 'Designer', status: 'Active', salary: 45000 },
+  { id: 5, name: 'อรุณ แสงเดือน', position: 'HR Manager', status: 'On Leave', salary: 48000 },
+  { id: 6, name: 'พิมพ์ชนก สว่างจิต', position: 'Accountant', status: 'Active', salary: 38000 },
+  { id: 7, name: 'กมลทิพย์ ร่มเย็น', position: 'Marketing', status: 'Active', salary: 32000 },
+  { id: 8, name: 'ปัณณ์ ภูมิพัฒน์', position: 'CTO', status: 'Active', salary: 95000 },
+  { id: 9, name: 'นภัส คงทน', position: 'Junior Developer', status: 'Active', salary: 22000 },
+  { id: 10, name: 'วิชัย ใจดี', position: 'Intern', status: 'Active', salary: 15000 },
 ];
 
 let inMemoryEmployees = [...INITIAL_EMPLOYEES.map((e) => ({ ...e }))];
