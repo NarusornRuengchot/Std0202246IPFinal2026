@@ -1,16 +1,15 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   RefreshControl,
   ScrollView,
   Platform,
+  Modal,
 } from 'react-native';
 import { router } from 'expo-router';
 import { getApiBaseUrl } from '../config/api';
@@ -24,11 +23,19 @@ interface Employee {
   salary: number;
 }
 
+interface ClusterMember {
+  id?: string | number;
+  name: string;
+  salary: number;
+  position: string;
+  status?: string;
+}
+
 interface ClusterResult {
   group: string;
   centroid: number;
   count: number;
-  members?: Array<{ name: string; salary: number; position: string }>;
+  members?: ClusterMember[];
 }
 
 export default function DashboardScreen() {
@@ -42,22 +49,31 @@ export default function DashboardScreen() {
   const [salary, setSalary] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Edit Employee State (Modal)
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editPosition, setEditPosition] = useState('');
+  const [editSalary, setEditSalary] = useState('');
+  const [editStatus, setEditStatus] = useState<'Active' | 'On Leave'>('Active');
+  const [editSaving, setEditSaving] = useState(false);
+
   // Phase 2: K-Means Clustering states
   const [clusters, setClusters] = useState<ClusterResult[]>([]);
   const [clusteringLoading, setClusteringLoading] = useState(false);
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
+  const [clusterViewMode, setClusterViewMode] = useState<'cards' | 'table'>('table');
 
   const API_URL = getApiBaseUrl();
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   // Fetch Employees [GET /api/employees]
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   const fetchEmployees = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`${API_URL}/employees`);
       if (!res.ok) {
-        throw new Error(`Server returned ${res.status}`);
+        throw new Error(`Server returned status ${res.status}`);
       }
       const data = await res.json();
       setEmployees(Array.isArray(data) ? data : []);
@@ -78,11 +94,10 @@ export default function DashboardScreen() {
     fetchEmployees();
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Add Employee [POST /api/employees] (with Client-Side Validation)
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
+  // Add Employee [POST /api/employees]
+  // ───────────────────────────────────────────────────────────────────────────
   const handleAddEmployee = async () => {
-    // Client-side validation: prevent submission if fields are empty
     if (!name.trim()) {
       showAlert('Validation Error', 'Please enter employee name.');
       return;
@@ -92,7 +107,7 @@ export default function DashboardScreen() {
       return;
     }
     if (!salary.trim() || isNaN(Number(salary)) || Number(salary) <= 0) {
-      showAlert('Validation Error', 'Please enter a valid positive salary number.');
+      showAlert('Validation Error', 'Please enter a valid positive salary amount.');
       return;
     }
 
@@ -115,7 +130,6 @@ export default function DashboardScreen() {
         return;
       }
 
-      // Success: clear inputs and refresh list
       setName('');
       setPosition('');
       setSalary('');
@@ -128,9 +142,68 @@ export default function DashboardScreen() {
     }
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
+  // Edit Employee [PUT /api/employees/:id]
+  // ───────────────────────────────────────────────────────────────────────────
+  const openEditModal = (emp: Employee) => {
+    setEditingEmployee(emp);
+    setEditName(emp.name);
+    setEditPosition(emp.position);
+    setEditSalary(String(emp.salary));
+    setEditStatus(emp.status);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingEmployee) return;
+
+    if (!editName.trim()) {
+      showAlert('Validation Error', 'Employee name cannot be empty.');
+      return;
+    }
+    if (!editPosition.trim()) {
+      showAlert('Validation Error', 'Position cannot be empty.');
+      return;
+    }
+    if (!editSalary.trim() || isNaN(Number(editSalary)) || Number(editSalary) <= 0) {
+      showAlert('Validation Error', 'Valid positive salary is required.');
+      return;
+    }
+
+    try {
+      setEditSaving(true);
+      const res = await fetch(`${API_URL}/employees/${editingEmployee.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editName.trim(),
+          position: editPosition.trim(),
+          salary: Number(editSalary),
+          status: editStatus,
+        }),
+      });
+
+      const updated = await res.json();
+
+      if (!res.ok) {
+        showAlert('Update Error', updated.message || 'Failed to update employee');
+        return;
+      }
+
+      setEmployees((prev) =>
+        prev.map((e) => (String(e.id) === String(editingEmployee.id) ? updated : e))
+      );
+      setEditingEmployee(null);
+      showAlert('Success', `Updated "${updated.name}" successfully!`);
+    } catch (err: any) {
+      showAlert('Error', `Network update failed: ${err.message}`);
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  // ───────────────────────────────────────────────────────────────────────────
   // Toggle Status [PUT /api/employees/:id/status]
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   const handleToggleStatus = async (emp: Employee) => {
     try {
       const res = await fetch(`${API_URL}/employees/${emp.id}/status`, {
@@ -139,7 +212,6 @@ export default function DashboardScreen() {
       const updated = await res.json();
 
       if (res.ok) {
-        // Optimistically or state update
         setEmployees((prev) =>
           prev.map((e) => (String(e.id) === String(emp.id) ? updated : e))
         );
@@ -151,45 +223,46 @@ export default function DashboardScreen() {
     }
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Delete Employee [DELETE /api/employees/:id] with Alert Confirmation
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
+  // Delete Employee [DELETE /api/employees/:id] with Confirmation Dialog
+  // ───────────────────────────────────────────────────────────────────────────
   const handleDeleteEmployee = (emp: Employee) => {
-    // Confirmation dialog ("Are you sure?") required by exam
-    Alert.alert(
+    showConfirm(
       'Confirm Delete',
       `Are you sure you want to delete "${emp.name}"? This action cannot be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const res = await fetch(`${API_URL}/employees/${emp.id}`, {
-                method: 'DELETE',
-              });
-              const result = await res.json();
-              if (res.ok) {
-                setEmployees((prev) =>
-                  prev.filter((e) => String(e.id) !== String(emp.id))
-                );
-                showAlert('Deleted', result.message || 'Employee removed.');
-              } else {
-                showAlert('Error', result.message || 'Failed to delete');
-              }
-            } catch (err: any) {
-              showAlert('Error', `Delete request failed: ${err.message}`);
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          console.log(`Sending delete request for ID: ${emp.id}`);
+          let res = await fetch(`${API_URL}/employees/${emp.id}`, {
+            method: 'DELETE',
+          });
+
+          // Fallback if DELETE method is blocked by reverse proxy
+          if (!res.ok && res.status === 405) {
+            res = await fetch(`${API_URL}/employees/${emp.id}/delete`, {
+              method: 'POST',
+            });
+          }
+
+          const result = await res.json();
+          if (res.ok) {
+            setEmployees((prev) =>
+              prev.filter((e) => String(e.id) !== String(emp.id))
+            );
+            showAlert('Deleted', result.message || 'Employee deleted successfully.');
+          } else {
+            showAlert('Delete Error', result.message || 'Failed to delete employee.');
+          }
+        } catch (err: any) {
+          showAlert('Network Error', `Delete request failed: ${err.message}`);
+        }
+      }
     );
   };
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   // Phase 2: K-Means Salary Clustering [GET /api/employees/salary-clusters]
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ───────────────────────────────────────────────────────────────────────────
   const handleAnalyzeSalary = async () => {
     setClusteringLoading(true);
     setHasAnalyzed(true);
@@ -201,7 +274,7 @@ export default function DashboardScreen() {
       if (res.ok && data.success) {
         setClusters(data.clusters || []);
       } else {
-        Alert.alert(
+        showAlert(
           'Analysis Notice',
           data.message || 'Failed to calculate clusters. (Need at least 3 employees).'
         );
@@ -242,7 +315,7 @@ export default function DashboardScreen() {
         <View>
           <Text style={styles.appTitle}>HR Management System</Text>
           <Text style={styles.appSubtitle}>
-            Std: 6730202246 â€¢ à¸™à¸£à¸¸à¸ªà¸£à¸“à¹Œ à¹€à¸£à¸·à¸­à¸‡à¹‚à¸Šà¸•à¸´
+            Std: 6730202246 • นรุสรณ์ เรืองโชติ
           </Text>
         </View>
         <TouchableOpacity
@@ -274,21 +347,21 @@ export default function DashboardScreen() {
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>Avg Salary</Text>
           <Text style={[styles.statValue, { color: '#60a5fa', fontSize: 15 }]}>
-            à¸¿{avgSalary.toLocaleString()}
+            ฿{avgSalary.toLocaleString()}
           </Text>
         </View>
       </View>
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       {/* PHASE 2: K-Means Salary Clustering Section                           */}
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           <View>
             <View style={styles.phaseBadge}>
               <Text style={styles.phaseBadgeText}>Phase 2: AI Analytics</Text>
             </View>
-            <Text style={styles.sectionTitle}>Automated Salary Clustering</Text>
+            <Text style={styles.sectionTitle}>Automated Salary Clustering (K-Means)</Text>
             <Text style={styles.sectionSubtitle}>
               1D K-Means Algorithm (k=3) groups compensation into 3 tiers
             </Text>
@@ -308,12 +381,12 @@ export default function DashboardScreen() {
             </View>
           ) : (
             <Text style={styles.analyzeBtnText}>
-              âš¡ Analyze Salary Structure (K-Means)
+              ⚡ Analyze Salary Structure (K-Means)
             </Text>
           )}
         </TouchableOpacity>
 
-        {/* Cluster Results: Summary Cards */}
+        {/* Cluster Results */}
         {clusteringLoading && (
           <View style={styles.loadingBox}>
             <ActivityIndicator color="#38bdf8" size="large" />
@@ -325,51 +398,171 @@ export default function DashboardScreen() {
 
         {!clusteringLoading && hasAnalyzed && clusters.length > 0 && (
           <View style={styles.clustersContainer}>
-            <Text style={styles.clustersHeader}>Clustering Results (3 Tiers):</Text>
-            <View style={styles.tierCardsRow}>
-              {clusters.map((cl, idx) => {
-                const tierColor =
-                  idx === 0 ? '#38bdf8' : idx === 1 ? '#a855f7' : '#f59e0b';
-                const tierBg =
-                  idx === 0
-                    ? 'rgba(56, 189, 248, 0.1)'
-                    : idx === 1
-                    ? 'rgba(168, 85, 247, 0.1)'
-                    : 'rgba(245, 158, 11, 0.1)';
-
-                return (
-                  <View
-                    key={idx}
+            {/* View Switcher: Cards vs Table */}
+            <View style={styles.viewToggleRow}>
+              <Text style={styles.clustersHeader}>Clustering Results (3 Tiers):</Text>
+              <View style={styles.toggleButtons}>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleBtn,
+                    clusterViewMode === 'table' && styles.toggleBtnActive,
+                  ]}
+                  onPress={() => setClusterViewMode('table')}
+                >
+                  <Text
                     style={[
-                      styles.tierCard,
-                      { borderColor: tierColor, backgroundColor: tierBg },
+                      styles.toggleBtnText,
+                      clusterViewMode === 'table' && styles.toggleBtnTextActive,
                     ]}
                   >
-                    <View style={styles.tierBadge}>
-                      <Text style={[styles.tierBadgeText, { color: tierColor }]}>
-                        {cl.group || `Tier ${idx + 1}`}
-                      </Text>
-                    </View>
-                    <Text style={styles.tierCentroidLabel}>Average (Centroid)</Text>
-                    <Text style={[styles.tierCentroidValue, { color: tierColor }]}>
-                      à¸¿{cl.centroid.toLocaleString()}
-                    </Text>
-                    <View style={styles.tierCountBadge}>
-                      <Text style={styles.tierCountText}>
-                        ðŸ‘¥ {cl.count} {cl.count === 1 ? 'Person' : 'People'}
-                      </Text>
-                    </View>
-                  </View>
-                );
-              })}
+                    📊 Table View
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleBtn,
+                    clusterViewMode === 'cards' && styles.toggleBtnActive,
+                  ]}
+                  onPress={() => setClusterViewMode('cards')}
+                >
+                  <Text
+                    style={[
+                      styles.toggleBtnText,
+                      clusterViewMode === 'cards' && styles.toggleBtnTextActive,
+                    ]}
+                  >
+                    🗂 Cards View
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
+
+            {/* Mode 1: Cards View */}
+            {clusterViewMode === 'cards' && (
+              <View style={styles.tierCardsRow}>
+                {clusters.map((cl, idx) => {
+                  const tierColor =
+                    idx === 0 ? '#38bdf8' : idx === 1 ? '#a855f7' : '#f59e0b';
+                  const tierBg =
+                    idx === 0
+                      ? 'rgba(56, 189, 248, 0.1)'
+                      : idx === 1
+                      ? 'rgba(168, 85, 247, 0.1)'
+                      : 'rgba(245, 158, 11, 0.1)';
+
+                  return (
+                    <View
+                      key={idx}
+                      style={[
+                        styles.tierCard,
+                        { borderColor: tierColor, backgroundColor: tierBg },
+                      ]}
+                    >
+                      <View style={styles.tierBadge}>
+                        <Text style={[styles.tierBadgeText, { color: tierColor }]}>
+                          {cl.group || `Tier ${idx + 1}`}
+                        </Text>
+                      </View>
+                      <Text style={styles.tierCentroidLabel}>Average Centroid</Text>
+                      <Text style={[styles.tierCentroidValue, { color: tierColor }]}>
+                        ฿{cl.centroid.toLocaleString()}
+                      </Text>
+                      <View style={styles.tierCountBadge}>
+                        <Text style={styles.tierCountText}>
+                          👥 {cl.count} {cl.count === 1 ? 'Person' : 'People'}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+
+            {/* Mode 2: Table View */}
+            {clusterViewMode === 'table' && (
+              <View style={styles.tableWrapper}>
+                {/* 1. Summary Table */}
+                <Text style={styles.subTableTitle}>1. Summary Table (Centroids & Staff Distribution)</Text>
+                <View style={styles.table}>
+                  <View style={styles.tableHeaderRow}>
+                    <Text style={[styles.th, { flex: 1.2 }]}>Tier Group</Text>
+                    <Text style={[styles.th, { flex: 1.5, textAlign: 'right' }]}>Centroid (Avg)</Text>
+                    <Text style={[styles.th, { flex: 1, textAlign: 'center' }]}>Count</Text>
+                    <Text style={[styles.th, { flex: 1, textAlign: 'right' }]}>Share %</Text>
+                  </View>
+                  {clusters.map((cl, idx) => {
+                    const tierColor =
+                      idx === 0 ? '#38bdf8' : idx === 1 ? '#a855f7' : '#f59e0b';
+                    const share =
+                      totalEmployees > 0
+                        ? Math.round((cl.count / totalEmployees) * 100)
+                        : 0;
+                    return (
+                      <View key={idx} style={styles.tableRow}>
+                        <View style={[styles.td, { flex: 1.2, flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+                          <View style={[styles.colorDot, { backgroundColor: tierColor }]} />
+                          <Text style={[styles.tdTextBold, { color: tierColor }]}>{cl.group}</Text>
+                        </View>
+                        <Text style={[styles.td, styles.tdText, { flex: 1.5, textAlign: 'right', color: '#f8fafc', fontWeight: '700' }]}>
+                          ฿{cl.centroid.toLocaleString()}
+                        </Text>
+                        <Text style={[styles.td, styles.tdText, { flex: 1, textAlign: 'center' }]}>
+                          {cl.count} คน
+                        </Text>
+                        <Text style={[styles.td, styles.tdText, { flex: 1, textAlign: 'right', color: '#94a3b8' }]}>
+                          {share}%
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+
+                {/* 2. Detailed Member List by Tier Table */}
+                <Text style={[styles.subTableTitle, { marginTop: 16 }]}>2. Employee Tier Classification Details</Text>
+                <View style={styles.table}>
+                  <View style={styles.tableHeaderRow}>
+                    <Text style={[styles.th, { flex: 0.6 }]}>#</Text>
+                    <Text style={[styles.th, { flex: 1.6 }]}>Name</Text>
+                    <Text style={[styles.th, { flex: 1.4 }]}>Position</Text>
+                    <Text style={[styles.th, { flex: 1.3, textAlign: 'right' }]}>Salary</Text>
+                    <Text style={[styles.th, { flex: 1.1, textAlign: 'center' }]}>Tier</Text>
+                  </View>
+
+                  {clusters.flatMap((cl, cIdx) => {
+                    const tierColor =
+                      cIdx === 0 ? '#38bdf8' : cIdx === 1 ? '#a855f7' : '#f59e0b';
+                    return (cl.members || []).map((m, mIdx) => (
+                      <View key={`${cIdx}-${mIdx}`} style={styles.tableRow}>
+                        <Text style={[styles.td, styles.tdText, { flex: 0.6, color: '#64748b' }]}>
+                          {mIdx + 1}
+                        </Text>
+                        <Text style={[styles.td, styles.tdTextBold, { flex: 1.6 }]}>
+                          {m.name}
+                        </Text>
+                        <Text style={[styles.td, styles.tdText, { flex: 1.4, color: '#94a3b8' }]}>
+                          {m.position}
+                        </Text>
+                        <Text style={[styles.td, styles.tdText, { flex: 1.3, textAlign: 'right', color: '#38bdf8', fontWeight: '700' }]}>
+                          ฿{Number(m.salary).toLocaleString()}
+                        </Text>
+                        <View style={[styles.td, { flex: 1.1, alignItems: 'center' }]}>
+                          <View style={[styles.tierTag, { backgroundColor: `${tierColor}20`, borderColor: tierColor }]}>
+                            <Text style={[styles.tierTagText, { color: tierColor }]}>{cl.group}</Text>
+                          </View>
+                        </View>
+                      </View>
+                    ));
+                  })}
+                </View>
+              </View>
+            )}
           </View>
         )}
       </View>
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       {/* PHASE 1: Add Employee Form                                           */}
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       <View style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           <View>
@@ -390,7 +583,7 @@ export default function DashboardScreen() {
             <Text style={styles.inputLabel}>Full Name *</Text>
             <TextInput
               style={styles.textInput}
-              placeholder="e.g. à¸ªà¸¡à¸¨à¸±à¸à¸”à¸´à¹Œ à¸¡à¸µà¸ªà¸¸à¸‚"
+              placeholder="e.g. สมศักดิ์ มีสุข"
               placeholderTextColor="#64748b"
               value={name}
               onChangeText={setName}
@@ -434,19 +627,19 @@ export default function DashboardScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       {/* PHASE 1: Employee List (CRUD UI)                                      */}
-      {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
       <View style={styles.sectionCard}>
         <View style={styles.listHeaderRow}>
           <View>
             <Text style={styles.sectionTitle}>Employee Directory</Text>
             <Text style={styles.sectionSubtitle}>
-              {employees.length} records in server memory
+              {employees.length} records in database
             </Text>
           </View>
           <TouchableOpacity onPress={fetchEmployees} style={styles.refreshIconBtn}>
-            <Text style={styles.refreshIconText}>â†» Refresh</Text>
+            <Text style={styles.refreshIconText}>↻ Refresh</Text>
           </TouchableOpacity>
         </View>
 
@@ -480,7 +673,7 @@ export default function DashboardScreen() {
                           isActive ? styles.statusTextActive : styles.statusTextLeave,
                         ]}
                       >
-                        â— {emp.status}
+                        ● {emp.status}
                       </Text>
                     </View>
                   </View>
@@ -489,12 +682,12 @@ export default function DashboardScreen() {
                   <Text style={styles.empSalary}>
                     Salary:{' '}
                     <Text style={styles.salaryHighlight}>
-                      à¸¿{Number(emp.salary).toLocaleString()}
+                      ฿{Number(emp.salary).toLocaleString()}
                     </Text>
                   </Text>
                 </View>
 
-                {/* Actions: Toggle Status & Delete */}
+                {/* Actions: Toggle Status, Edit & Delete */}
                 <View style={styles.empActions}>
                   <TouchableOpacity
                     style={[
@@ -509,11 +702,20 @@ export default function DashboardScreen() {
                   </TouchableOpacity>
 
                   <TouchableOpacity
+                    style={[styles.actionBtn, styles.btnEdit]}
+                    onPress={() => openEditModal(emp)}
+                  >
+                    <Text style={[styles.actionBtnText, styles.editBtnText]}>
+                      ✏️ Edit
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
                     style={[styles.actionBtn, styles.btnDelete]}
                     onPress={() => handleDeleteEmployee(emp)}
                   >
                     <Text style={[styles.actionBtnText, styles.deleteBtnText]}>
-                      Delete
+                      🗑 Delete
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -522,6 +724,113 @@ export default function DashboardScreen() {
           })
         )}
       </View>
+
+      {/* ───────────────────────────────────────────────────────────────────── */}
+      {/* EDIT EMPLOYEE MODAL                                                   */}
+      {/* ───────────────────────────────────────────────────────────────────── */}
+      <Modal
+        visible={editingEmployee !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setEditingEmployee(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Employee Details</Text>
+            <Text style={styles.modalSubtitle}>
+              Update information for ID: {editingEmployee?.id}
+            </Text>
+
+            <View style={styles.modalForm}>
+              <View style={styles.inputWrap}>
+                <Text style={styles.inputLabel}>Full Name</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={editName}
+                  onChangeText={setEditName}
+                />
+              </View>
+
+              <View style={styles.inputWrap}>
+                <Text style={styles.inputLabel}>Position</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={editPosition}
+                  onChangeText={setEditPosition}
+                />
+              </View>
+
+              <View style={styles.inputWrap}>
+                <Text style={styles.inputLabel}>Salary (THB)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={editSalary}
+                  onChangeText={setEditSalary}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={styles.inputWrap}>
+                <Text style={styles.inputLabel}>Status</Text>
+                <View style={styles.statusToggleGroup}>
+                  <TouchableOpacity
+                    style={[
+                      styles.statusToggleBtn,
+                      editStatus === 'Active' && styles.statusToggleBtnActive,
+                    ]}
+                    onPress={() => setEditStatus('Active')}
+                  >
+                    <Text
+                      style={[
+                        styles.statusToggleText,
+                        editStatus === 'Active' && styles.statusToggleTextActive,
+                      ]}
+                    >
+                      Active
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.statusToggleBtn,
+                      editStatus === 'On Leave' && styles.statusToggleBtnLeave,
+                    ]}
+                    onPress={() => setEditStatus('On Leave')}
+                  >
+                    <Text
+                      style={[
+                        styles.statusToggleText,
+                        editStatus === 'On Leave' && styles.statusToggleTextLeave,
+                      ]}
+                    >
+                      On Leave
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.modalActionRow}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setEditingEmployee(null)}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalSaveBtn, editSaving && styles.btnDisabled]}
+                onPress={handleSaveEdit}
+                disabled={editSaving}
+              >
+                {editSaving ? (
+                  <ActivityIndicator color="#ffffff" size="small" />
+                ) : (
+                  <Text style={styles.modalSaveText}>Save Changes</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -559,6 +868,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#334155',
+    cursor: 'pointer' as any,
   },
   signOutText: {
     color: '#cbd5e1',
@@ -632,11 +942,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#8b5cf6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 3,
+    cursor: 'pointer' as any,
   },
   analyzeBtnText: {
     color: '#ffffff',
@@ -661,11 +967,40 @@ const styles = StyleSheet.create({
   clustersContainer: {
     marginTop: 16,
   },
+  viewToggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   clustersHeader: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
     color: '#cbd5e1',
-    marginBottom: 10,
+  },
+  toggleButtons: {
+    flexDirection: 'row',
+    backgroundColor: '#1e293b',
+    borderRadius: 8,
+    padding: 2,
+  },
+  toggleBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    cursor: 'pointer' as any,
+  },
+  toggleBtnActive: {
+    backgroundColor: '#3b82f6',
+  },
+  toggleBtnText: {
+    fontSize: 11,
+    color: '#94a3b8',
+    fontWeight: '600',
+  },
+  toggleBtnTextActive: {
+    color: '#ffffff',
+    fontWeight: '700',
   },
   tierCardsRow: {
     flexDirection: 'row',
@@ -707,11 +1042,77 @@ const styles = StyleSheet.create({
     color: '#cbd5e1',
     fontWeight: '600',
   },
+  tableWrapper: {
+    marginTop: 4,
+  },
+  subTableTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#94a3b8',
+    marginBottom: 8,
+  },
+  table: {
+    backgroundColor: '#090d16',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    overflow: 'hidden',
+  },
+  tableHeaderRow: {
+    flexDirection: 'row',
+    backgroundColor: '#1e293b',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  th: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#cbd5e1',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(30, 41, 59, 0.6)',
+    alignItems: 'center',
+  },
+  td: {
+    fontSize: 12,
+  },
+  tdText: {
+    color: '#e2e8f0',
+    fontSize: 12,
+  },
+  tdTextBold: {
+    color: '#f8fafc',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  colorDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  tierTag: {
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  tierTagText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
   formGrid: {
     gap: 10,
     marginBottom: 14,
   },
-  inputWrap: {},
+  inputWrap: {
+    marginBottom: 8,
+  },
   inputLabel: {
     fontSize: 12,
     color: '#94a3b8',
@@ -733,6 +1134,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
+    cursor: 'pointer' as any,
   },
   addBtnText: {
     color: '#ffffff',
@@ -750,6 +1152,7 @@ const styles = StyleSheet.create({
   },
   refreshIconBtn: {
     padding: 4,
+    cursor: 'pointer' as any,
   },
   refreshIconText: {
     color: '#38bdf8',
@@ -825,6 +1228,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    cursor: 'pointer' as any,
   },
   btnLeave: {
     backgroundColor: 'rgba(245, 158, 11, 0.15)',
@@ -836,6 +1240,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#059669',
   },
+  btnEdit: {
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    borderWidth: 1,
+    borderColor: '#2563eb',
+  },
   btnDelete: {
     backgroundColor: 'rgba(239, 68, 68, 0.15)',
     borderWidth: 1,
@@ -845,6 +1254,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#cbd5e1',
+  },
+  editBtnText: {
+    color: '#60a5fa',
   },
   deleteBtnText: {
     color: '#f87171',
@@ -862,5 +1274,101 @@ const styles = StyleSheet.create({
     color: '#64748b',
     fontSize: 12,
     marginTop: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 480,
+    backgroundColor: '#0f172a',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#f8fafc',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 12,
+    color: '#64748b',
+    marginBottom: 16,
+  },
+  modalForm: {
+    gap: 8,
+    marginBottom: 16,
+  },
+  statusToggleGroup: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  statusToggleBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: '#1e293b',
+    borderWidth: 1,
+    borderColor: '#334155',
+    cursor: 'pointer' as any,
+  },
+  statusToggleBtnActive: {
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    borderColor: '#10b981',
+  },
+  statusToggleBtnLeave: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    borderColor: '#f59e0b',
+  },
+  statusToggleText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontWeight: '600',
+  },
+  statusToggleTextActive: {
+    color: '#34d399',
+    fontWeight: '700',
+  },
+  statusToggleTextLeave: {
+    color: '#fbbf24',
+    fontWeight: '700',
+  },
+  modalActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    backgroundColor: '#1e293b',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    cursor: 'pointer' as any,
+  },
+  modalCancelText: {
+    color: '#cbd5e1',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  modalSaveBtn: {
+    flex: 1.5,
+    backgroundColor: '#2563eb',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    cursor: 'pointer' as any,
+  },
+  modalSaveText: {
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 13,
   },
 });
