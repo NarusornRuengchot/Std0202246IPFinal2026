@@ -1,0 +1,22 @@
+import { useEffect, useState, useContext } from 'react';
+import { ThemeContext } from '@/context/ThemeContext';
+
+/**
+ * To support static rendering, this value needs to be re-calculated on the client side for web
+ */
+export function useColorScheme() {
+  const [hasHydrated, setHasHydrated] = useState(false);
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
+  const context = useContext(ThemeContext);
+  const colorScheme = context ? context.colorScheme : 'light';
+
+  if (hasHydrated) {
+    return colorScheme;
+  }
+
+  return 'light';
+}

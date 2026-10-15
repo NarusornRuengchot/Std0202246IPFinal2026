@@ -1,0 +1,14 @@
+{
+  "name": "std6730202246-employee-backend",
+  "version": "1.0.0",
+  "description": "Employee Management API - IP Final Exam 2026",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "cors": "^2.8.5"
+  }
+}
