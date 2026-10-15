@@ -347,7 +347,7 @@ export default function DashboardScreen() {
         <View>
           <Text style={styles.appTitle}>HR Management System</Text>
           <Text style={styles.appSubtitle}>
-            Student ID: 6730202246 | Narusorn Ruengchot
+            Corporate Workforce Directory & Compensation Analytics
           </Text>
         </View>
         <TouchableOpacity
@@ -391,7 +391,7 @@ export default function DashboardScreen() {
         <View style={styles.sectionHeader}>
           <View>
             <View style={styles.phaseBadge}>
-              <Text style={styles.phaseBadgeText}>Phase 2: AI Analytics</Text>
+              <Text style={styles.phaseBadgeText}>AI Analytics Engine</Text>
             </View>
             <Text style={styles.sectionTitle}>Automated Salary Clustering (K-Means)</Text>
             <Text style={styles.sectionSubtitle}>
@@ -684,7 +684,7 @@ export default function DashboardScreen() {
           <View>
             <View style={[styles.phaseBadge, { borderColor: '#10b981' }]}>
               <Text style={[styles.phaseBadgeText, { color: '#34d399' }]}>
-                Phase 1: Create
+                Employee Onboarding
               </Text>
             </View>
             <Text style={styles.sectionTitle}>Add New Employee</Text>

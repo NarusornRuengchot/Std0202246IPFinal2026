@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -15,16 +15,15 @@ import { getApiBaseUrl, setApiBaseUrl } from '../config/api';
 import { showAlert } from '../utils/alert';
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('password123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [apiUrl, setApiUrl] = useState(getApiBaseUrl());
   const [showApiConfig, setShowApiConfig] = useState(false);
 
   const handleLogin = async () => {
-    // Client-side validation
     if (!username.trim() || !password.trim()) {
-      showAlert('Validation Error', 'Please enter both username and password.');
+      showAlert('Validation Error', 'Please enter your username and password.');
       return;
     }
 
@@ -33,7 +32,6 @@ export default function LoginScreen() {
     setApiBaseUrl(targetUrl);
 
     try {
-      console.log('Sending login request to:', `${targetUrl}/login`);
       const response = await fetch(`${targetUrl}/login`, {
         method: 'POST',
         headers: {
@@ -48,20 +46,17 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Success: navigate to dashboard
         router.replace('/dashboard');
       } else {
-        // Failed: display alert
         showAlert(
-          'Login Failed',
+          'Authentication Failed',
           data.message || 'Invalid username or password. Please try again.'
         );
       }
     } catch (err: any) {
-      console.error('Login error:', err);
       showAlert(
         'Connection Error',
-        `Cannot connect to backend server at ${targetUrl}.\nPlease verify the server is running on the server.\n\nError: ${err.message}`
+        `Unable to reach the server at ${targetUrl}.\nPlease ensure the service is running and accessible.`
       );
     } finally {
       setLoading(false);
@@ -77,19 +72,19 @@ export default function LoginScreen() {
         {/* Header / Brand */}
         <View style={styles.header}>
           <View style={styles.badgeContainer}>
-            <Text style={styles.badgeText}>IP Final Exam 2026</Text>
+            <Text style={styles.badgeText}>Enterprise HR Platform</Text>
           </View>
           <Text style={styles.title}>HR Manager & Analytics</Text>
           <Text style={styles.subtitle}>
-            Student ID: 6730202246 • Narusorn Ruengchot
+            Enterprise Workforce Management & Compensation Intelligence
           </Text>
         </View>
 
         {/* Card */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Sign In to Your Account</Text>
+          <Text style={styles.cardTitle}>Sign In</Text>
           <Text style={styles.cardSubtitle}>
-            Enter administrator credentials to manage records
+            Access your human resources and analytics management console
           </Text>
 
           {/* Username Input */}
@@ -97,7 +92,7 @@ export default function LoginScreen() {
             <Text style={styles.label}>Username</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. admin"
+              placeholder="Enter your corporate username"
               placeholderTextColor="#64748b"
               value={username}
               onChangeText={setUsername}
@@ -111,21 +106,13 @@ export default function LoginScreen() {
             <Text style={styles.label}>Password</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. password123"
+              placeholder="Enter your account password"
               placeholderTextColor="#64748b"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
               autoCapitalize="none"
             />
-          </View>
-
-          {/* Quick Credential Hint */}
-          <View style={styles.hintBox}>
-            <Text style={styles.hintText}>
-              Default credentials: <Text style={styles.hintBold}>admin</Text> /{' '}
-              <Text style={styles.hintBold}>password123</Text>
-            </Text>
           </View>
 
           {/* Login Button */}
@@ -137,23 +124,23 @@ export default function LoginScreen() {
             {loading ? (
               <ActivityIndicator color="#ffffff" />
             ) : (
-              <Text style={styles.buttonText}>Sign In to Dashboard →</Text>
+              <Text style={styles.buttonText}>Sign In</Text>
             )}
           </TouchableOpacity>
 
-          {/* API Server Config Toggle */}
+          {/* Server Config Toggle (Discreet) */}
           <TouchableOpacity
             style={styles.toggleConfigBtn}
             onPress={() => setShowApiConfig(!showApiConfig)}
           >
             <Text style={styles.toggleConfigText}>
-              {showApiConfig ? '▼ Hide Server Settings' : '⚙ Server Settings (Backend URL)'}
+              {showApiConfig ? 'Hide Gateway Settings' : 'Network Settings'}
             </Text>
           </TouchableOpacity>
 
           {showApiConfig && (
             <View style={styles.configBox}>
-              <Text style={styles.configLabel}>Backend API Base URL:</Text>
+              <Text style={styles.configLabel}>API Endpoint Gateway:</Text>
               <TextInput
                 style={styles.configInput}
                 value={apiUrl}
@@ -166,7 +153,7 @@ export default function LoginScreen() {
                   style={styles.quickUrlBtn}
                   onPress={() => setApiUrl('http://119.59.102.161:3024/api')}
                 >
-                  <Text style={styles.quickUrlText}>KU Server (3024)</Text>
+                  <Text style={styles.quickUrlText}>Primary Server (3024)</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.quickUrlBtn}
@@ -180,7 +167,7 @@ export default function LoginScreen() {
         </View>
 
         <Text style={styles.footer}>
-          Faculty of Science at Sriracha • Kasetsart University
+          © 2026 HRMS Enterprise Solutions Inc. All rights reserved.
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -217,17 +204,19 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '800',
     color: '#f8fafc',
     textAlign: 'center',
     letterSpacing: -0.5,
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, sans-serif' : undefined,
   },
   subtitle: {
     fontSize: 13,
     color: '#94a3b8',
     marginTop: 6,
     textAlign: 'center',
+    fontFamily: Platform.OS === 'web' ? 'system-ui, -apple-system, sans-serif' : undefined,
   },
   card: {
     backgroundColor: '#0f172a',
@@ -235,6 +224,9 @@ const styles = StyleSheet.create({
     padding: 24,
     borderWidth: 1,
     borderColor: '#1e293b',
+    maxWidth: 440,
+    width: '100%',
+    alignSelf: 'center',
   },
   cardTitle: {
     fontSize: 20,
@@ -245,10 +237,10 @@ const styles = StyleSheet.create({
   cardSubtitle: {
     fontSize: 13,
     color: '#64748b',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   inputGroup: {
-    marginBottom: 16,
+    marginBottom: 18,
   },
   label: {
     fontSize: 13,
@@ -262,26 +254,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     color: '#f8fafc',
-    fontSize: 15,
+    fontSize: 14,
     borderWidth: 1,
     borderColor: '#334155',
-  },
-  hintBox: {
-    backgroundColor: 'rgba(148, 163, 184, 0.08)',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(148, 163, 184, 0.15)',
-  },
-  hintText: {
-    fontSize: 12,
-    color: '#94a3b8',
-    textAlign: 'center',
-  },
-  hintBold: {
-    color: '#38bdf8',
-    fontWeight: '700',
   },
   button: {
     backgroundColor: '#2563eb',
@@ -290,6 +265,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer' as any,
+    marginTop: 6,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -300,12 +276,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   toggleConfigBtn: {
-    marginTop: 18,
+    marginTop: 20,
     alignItems: 'center',
     cursor: 'pointer' as any,
   },
   toggleConfigText: {
-    color: '#64748b',
+    color: '#475569',
     fontSize: 12,
   },
   configBox: {
